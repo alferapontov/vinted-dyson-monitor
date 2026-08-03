@@ -8,6 +8,9 @@ on:
 
 jobs:
   monitor:
+    permissions:
+      contents: write
+
     runs-on: ubuntu-latest
 
     env:
@@ -32,3 +35,16 @@ jobs:
 
       - name: Run monitor
         run: python app.py
+
+      - name: Commit updated seen items
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add data/seen_items.json
+
+          git diff --cached --quiet || git commit -m "chore: update seen items"
+
+      - name: Push changes
+        run: |
+          git push
