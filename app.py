@@ -1,3 +1,4 @@
+import os
 import random
 import time
 from datetime import datetime
@@ -19,6 +20,10 @@ SEARCH_URL = (
 CHECK_INTERVAL_MIN = 170
 CHECK_INTERVAL_MAX = 210
 
+# true (по умолчанию) — бесконечный мониторинг
+# false — одна проверка (для GitHub Actions)
+RUN_FOREVER = os.getenv("RUN_FOREVER", "true").lower() == "true"
+
 
 def check_once(client: VintedClient):
     html = client.fetch(SEARCH_URL)
@@ -30,7 +35,6 @@ def check_once(client: VintedClient):
     new_items = []
 
     for item in items:
-
         if not is_interesting(item):
             continue
 
@@ -50,20 +54,18 @@ def main():
     while True:
 
         print("\n" + "=" * 70)
-        print(datetime.now().strftime("[%H:%M:%S] Проверка..."))
+        print(datetime.now().strftime("[%H:%M:%S] Checking..."))
 
         try:
-
             new_items = check_once(client)
 
-            print(f"Новых подходящих товаров: {len(new_items)}")
+            print(f"New matching items: {len(new_items)}")
 
             for item in new_items:
-
                 url = f"https://www.vinted.pt{item['url']}"
 
                 message = (
-                    "🔥 Новый Dyson!\n\n"
+                    "🔥 New Dyson found!\n\n"
                     f"{item['title']}\n\n"
                     f"💶 {item['price']}\n\n"
                     f"{url}"
@@ -74,11 +76,19 @@ def main():
                 send_message(message)
 
         except Exception as e:
-            print("Ошибка:", e)
+            print("Error:", e)
 
-        wait_time = random.randint(CHECK_INTERVAL_MIN, CHECK_INTERVAL_MAX)
+        # Для GitHub Actions выполняем только одну проверку
+        if not RUN_FOREVER:
+            break
 
-        print(f"\nЖдём {wait_time} секунд...")
+        wait_time = random.randint(
+            CHECK_INTERVAL_MIN,
+            CHECK_INTERVAL_MAX,
+        )
+
+        print(f"\nSleeping {wait_time} seconds...\n")
+
         time.sleep(wait_time)
 
 
