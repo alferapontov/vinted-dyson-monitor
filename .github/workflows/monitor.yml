@@ -22,8 +22,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -46,9 +46,14 @@ jobs:
 
           git add data/seen_items.json
 
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update seen items"
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
           fi
 
+          git commit -m "chore: update seen items"
+
       - name: Push changes
-        run: git push
+        run: |
+          git pull --rebase origin main
+          git push origin main
