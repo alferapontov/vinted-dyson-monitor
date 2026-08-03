@@ -30,6 +30,13 @@ def check_once(client: VintedClient):
 
     items = extract_items(html)
 
+    print(f"Fetched items: {len(items)}")
+
+    for item in items[:10]:
+        print("=" * 40)
+        print(item["title"])
+        print(item["price"])
+
     seen_ids = load_seen_ids()
 
     new_items = []
